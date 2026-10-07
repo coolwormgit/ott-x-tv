@@ -1,0 +1,28 @@
+{
+    "name": "ott-x-tv",
+    "version": "2.0.0",
+    "private": true,
+    "type": "module",
+    "description": "OTT-X for Android TV — separate project. Reads the shared OTT-X web frontend (read-only) and builds its own payload + APK/AAB.",
+    "scripts": {
+        "web:build": "node scripts/build-web.mjs",
+        "web:serve": "node scripts/serve-web.mjs",
+        "verify": "node scripts/verify.mjs",
+        "cap:copy": "npx cap copy android",
+        "cap:sync": "npx cap sync android",
+        "cap:android": "npx cap open android",
+        "apk:debug": "cd android && ./gradlew assembleDebug",
+        "apk:release": "cd android && ./gradlew assembleRelease",
+        "aab:release": "cd android && ./gradlew bundleRelease"
+    },
+    "dependencies": {
+        "@capacitor/android": "^8.5.1",
+        "@capacitor/app": "^8.1.1",
+        "@capacitor/core": "^8.5.1"
+    },
+    "devDependencies": {
+        "@capacitor/cli": "^8.5.1",
+        "terser": "^5.51.2",
+        "typescript": "^5.9.3"
+    }
+}

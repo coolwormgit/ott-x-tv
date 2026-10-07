@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Referenced by res/values/styles.xml (AppTheme). The generated template
+         ships styles.xml without colors.xml, which fails aapt2 with
+         "resource color/colorPrimary not found". -->
+    <color name="colorPrimary">#111111</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#FBC02D</color>
+    <color name="tv_banner_background">#111111</color>
+</resources>
