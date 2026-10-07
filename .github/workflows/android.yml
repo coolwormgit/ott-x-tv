@@ -67,6 +67,12 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
+      # The payload compiles the shared sources, which import @capacitor/core etc.
+      # Those come from the frontend's own dependencies, not from this project.
+      - name: Install frontend dependencies (type resolution)
+        run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: _shared/OTT-X
+
 
       - name: Build the web payload (www/)
         run: npm run web:build

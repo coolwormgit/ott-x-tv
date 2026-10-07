@@ -8,13 +8,17 @@ push/PR, on tags (`v*`) and on demand (`workflow_dispatch`).
 1. checks out this repository;
 2. checks out the **shared frontend** from `coolwormgit/ott-x`
    (`FRONTEND_REPO`/`FRONTEND_REF` in the workflow `env:`) into `_shared/OTT-X`;
-3. `npm ci`, then `npm run web:build` with `OTT_SRC` pointing at that checkout —
-   the payload is built *here*, the frontend checkout is only read;
-4. `npm run verify` (payload layout, byte-parity with the LG bundle, device
+3. installs this project's dependencies, plus the frontend's own
+   (`npm ci --ignore-scripts` inside the checkout) — the payload compiles the
+   shared sources, which import `@capacitor/core` and the jQuery types, and those
+   live in the frontend's dependency tree;
+4. `npm run web:build` with `OTT_SRC` pointing at that checkout — the payload is
+   built *here*, the frontend sources are only read;
+5. `npm run verify` (payload layout, byte-parity with the LG bundle, device
    layer, TV manifest, banner, Gradle/app-id, separation);
-5. JDK 21 + Android SDK (platform 36, build-tools 36.0.0), `npx cap sync android`;
-6. `./gradlew assembleDebug` → **`ott-x-tv-debug-apk`** artifact;
-7. if the signing secrets are present: `./gradlew assembleRelease bundleRelease`
+6. JDK 21 + Android SDK (platform 36, build-tools 36.0.0), `npx cap sync android`;
+7. `./gradlew assembleDebug` → **`ott-x-tv-debug-apk`** artifact;
+8. if the signing secrets are present: `./gradlew assembleRelease bundleRelease`
    → **`ott-x-tv-release`** artifact (signed APK + AAB).
 
 Nothing is published anywhere automatically — downloads are workflow artifacts.
@@ -74,4 +78,7 @@ no secret ever lands in the repository.
 ## Building without CI
 
 See the README: JDK 21 + Android SDK locally, then `npm run web:build`,
-`npx cap sync android`, `npm run apk:debug`.
+`npx cap sync android`, `npm run apk:debug`. When the payload is built from a
+frontend checkout that has never been installed, run `npm ci` in that checkout
+first (`OTT_SRC=/path/to/OTT-X`), otherwise `tsc` cannot resolve `@capacitor/core`
+and the jQuery globals.

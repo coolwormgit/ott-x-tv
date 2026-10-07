@@ -209,18 +209,23 @@ function main() {
     mkdirSync(WWW, { recursive: true });
 
     console.log("[build-web] step 1: tsc (outDir -> ./build, rootDir -> <OTT_SRC>/src)");
-    execFileSync(
-        tool("tsc"),
-        [
-            "-p",
-            join(OTT_SRC, "tsconfig.json"),
-            "--outDir",
-            BUILD_DIR,
-            "--rootDir",
-            join(OTT_SRC, "src"),
-        ],
-        { cwd: OTT_SRC, stdio: "inherit" }
+    // The frontend sources use ambient globals (jQuery's `$` among them), and its
+    // own node_modules may not exist in a fresh checkout (CI). Point tsc at this
+    // project's @types first, and at the frontend's when that checkout is
+    // installed too — so the payload builds from a bare checkout either way.
+    const typeRoots = [join(ROOT, "node_modules", "@types"), join(OTT_SRC, "node_modules", "@types")].filter(
+        (dir) => existsSync(dir)
     );
+    const tscArgs = [
+        "-p",
+        join(OTT_SRC, "tsconfig.json"),
+        "--outDir",
+        BUILD_DIR,
+        "--rootDir",
+        join(OTT_SRC, "src"),
+    ];
+    if (typeRoots.length) tscArgs.push("--typeRoots", typeRoots.join(","));
+    execFileSync(tool("tsc"), tscArgs, { cwd: OTT_SRC, stdio: "inherit" });
 
     console.log(`[build-web] step 2: concatenate (${mods.length} modules)`);
     let bundle = "";
