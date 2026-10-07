@@ -282,6 +282,18 @@ section("gradle / capacitor config");
 const appGradle = read(join(APP, "build.gradle"));
 ok('applicationId is play.ott.foss.tv', /applicationId\s+"play\.ott\.foss\.tv"/.test(appGradle));
 ok("namespace stays play.ott.foss", /namespace\s*=\s*"play\.ott\.foss"/.test(appGradle));
+// The native plugins are Kotlin and the Capacitor template does not add Kotlin.
+ok("applies the Kotlin Android plugin", /apply plugin:\s*'org\.jetbrains\.kotlin\.android'/.test(appGradle));
+const rootGradle = read(join(ANDROID, "build.gradle"));
+ok(
+    "declares the Kotlin Gradle plugin on the buildscript classpath",
+    /kotlin-gradle-plugin:\$kotlinVersion/.test(rootGradle)
+);
+ok("variables.gradle defines kotlinVersion", /kotlinVersion\s*=\s*'\d/.test(read(join(ANDROID, "variables.gradle"))));
+ok(
+    "Kotlin and Java share a JVM target",
+    /jvmToolchain\(\s*21\s*\)/.test(appGradle) && /JavaVersion\.VERSION_21/.test(read(join(APP, "capacitor.build.gradle")))
+);
 ok("versionCode/versionName set", /versionCode\s+20000/.test(appGradle) && /versionName\s+"2\.0\.0"/.test(appGradle));
 ok(
     "release signing comes from env (no secrets in the repo)",

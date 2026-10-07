@@ -1,4 +1,13 @@
 apply plugin: 'com.android.application'
+// The app ships its own Kotlin plugins (ExoPlayer, media service, command queue,
+// Stalker, XMLTV), so the module compiles Kotlin as well as Java.
+apply plugin: 'org.jetbrains.kotlin.android'
+
+// Keep Java and Kotlin on the same JVM target (both 21) or the build fails with
+// an inconsistent-JVM-target error.
+kotlin {
+    jvmToolchain(21)
+}
 
 android {
     // Java package of the native sources — shared with the phone app on purpose
