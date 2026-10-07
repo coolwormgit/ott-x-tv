@@ -54,7 +54,7 @@ class MobileXmltvEpgPlugin : Plugin() {
 
         val request = Request.Builder().url(urlStr).build()
         client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
+            override fun onFailure(okCall: Call, e: IOException) {
                 val stale = try { FileInputStream(cacheFile).use { it.readBytes() } } catch (_: Throwable) { null }
                 if (stale != null) {
                     val xml = gunzip(stale)
@@ -67,13 +67,13 @@ class MobileXmltvEpgPlugin : Plugin() {
                 call.reject(e.localizedMessage ?: "fetch failed")
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                val data = response.body?.bytes() ?: return onFailure(call, IOException("empty body"))
+            override fun onResponse(okCall: Call, response: Response) {
+                val data = response.body?.bytes() ?: return onFailure(okCall, IOException("empty body"))
                 try {
                     cacheFile.writeBytes(data)
                     metaFile.writeText((System.currentTimeMillis() / 1000).toString())
                 } catch (_: Throwable) { /* ignore cache write errors */ }
-                val xml = gunzip(data) ?: return onFailure(call, IOException("gunzip failed"))
+                val xml = gunzip(data) ?: return onFailure(okCall, IOException("gunzip failed"))
                 val parsed = parseXmltv(String(xml))
                 call.resolve(buildSlice(parsed, channelId, ch, hash, timeShift))
             }
@@ -85,8 +85,8 @@ class MobileXmltvEpgPlugin : Plugin() {
         val urlStr = call.getString("xmltv_url")?.trim()?.takeIf { it.isNotEmpty() } ?: DEFAULT_URL
         val request = Request.Builder().url(urlStr).build()
         client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) { call.reject(e.localizedMessage ?: "fetch failed") }
-            override fun onResponse(call: Call, response: Response) {
+            override fun onFailure(okCall: Call, e: IOException) { call.reject(e.localizedMessage ?: "fetch failed") }
+            override fun onResponse(okCall: Call, response: Response) {
                 val data = response.body?.bytes() ?: return call.reject("empty body")
                 try {
                     cacheFile.writeBytes(data)

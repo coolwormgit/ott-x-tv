@@ -101,7 +101,7 @@ class MobileNativeMediaPlugin : Plugin() {
 
     @PluginMethod
     fun setVolume(call: PluginCall) {
-        val volume = call.getInt("volume", 0)
+        val volume = call.getInt("volume", 0) ?: 0
         val clamped = volume.coerceIn(0, 100)
 
         val am = bridge.context.getSystemService(AUDIO_SERVICE) as? AudioManager
@@ -163,7 +163,7 @@ class MobileNativeMediaPlugin : Plugin() {
 
     @PluginMethod
     fun setFullscreen(call: PluginCall) {
-        val fullscreen = call.getBool("fullscreen", false)
+        val fullscreen = call.getBoolean("fullscreen", false) ?: false
         isFullscreen = fullscreen
         val activity = bridge.activity
 
