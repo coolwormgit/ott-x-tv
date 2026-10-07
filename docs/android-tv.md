@@ -116,7 +116,27 @@ window.stbInit = webosStbInit;   // explicit assignment, no hoisting
 The override mirrors that pattern. `npm run verify` fails if a
 `function stbInit()` declaration ever reappears in the payload.
 
-## 5. Findings in the shared checkout (not modified here)
+## 5. Defects fixed here (so the APK actually compiles)
+
+None of the native sources had ever been compiled — every one of these surfaced
+only when CI ran Gradle for the first time:
+
+1. **No Kotlin plugin.** The app's plugins and `MediaPlaybackService` are Kotlin,
+   but neither the Capacitor 8 template (`assets/android-template.tar.gz` has no
+   Kotlin at all) nor the copied project applied `org.jetbrains.kotlin.android`,
+   so `javac` failed with `cannot find symbol: DashExoPlayerPlugin`. Added the
+   plugin (2.2.0) in `build.gradle`'s `buildscript` block — it must be declared
+   there, before `variables.gradle` is applied — plus a shared JVM target of 21.
+2. **`MobileXmltvEpgPlugin` shadowed its `PluginCall`.** The okhttp callback
+   parameters were also called `call`, so `call.resolve(...)`/`call.reject(...)`
+   inside `onFailure`/`onResponse` resolved against okhttp's `Call` and did not
+   compile. The parameters are now `okCall`.
+3. **Removed Capacitor API.** `MobileNativeMediaPlugin` called
+   `PluginCall.getBool(...)`, which no longer exists (Capacitor 8 has
+   `getBoolean`), and used a nullable `getInt` result as non-null.
+4. **Missing `colors.xml`** (see below) and **no plugin registration** (see below).
+
+## 6. Findings in the shared checkout (not modified here)
 
 1. `stb/android/stb.js` (and `stb/dune`, `stb/mag`, `stb/spark`) — the
    hoisting recursion of §4.
@@ -134,9 +154,17 @@ The override mirrors that pattern. `npm run verify` fails if a
 4. `webDir: "dist"` in the phone `capacitor.config.ts` gives the wrong asset
    layout (§1).
 
-## 6. Verified / not verified
+## 7. Verified / not verified
 
-Verified here (no Android SDK needed):
+Verified in CI (`.github/workflows/android.yml`, run [37594616885](https://github.com/coolwormgit/ott-x-tv/actions/runs/37594616885),
+`BUILD SUCCESSFUL in 1m 34s`): the payload builds from the private frontend
+checkout, all 87 checks pass, `cap sync` succeeds and Gradle produces
+**`ott-x-tv-debug-apk`** (11.2 MB, `android/app/build/outputs/apk/debug/app-debug.apk`).
+That APK is built from the *pushed* frontend ref, so a frontend fix that is not
+pushed yet is not in it (use the workflow's `frontend_ref` input to build a
+branch or commit).
+
+Verified locally (no Android SDK needed):
 
 * `npm run web:build` → 25 modules, `www/dist/stbPlayer.js` **md5-identical** to
   the LG build (`e314160b…`, 555,835 bytes), so the TV payload carries the same
@@ -152,13 +180,12 @@ Verified here (no Android SDK needed):
   (channel up) and `_doKey(22)` → right/`popupList`, i.e. the codes in §3 reach
   the app's own actions.
 * `npx cap sync android` succeeds; `assets/public/` has the §1 layout.
-* `npm run verify` — 83/83 checks.
+* `npm run verify` — 87/87 checks.
 
-Not verified (blocked, no JDK/Android SDK/`ANDROID_HOME` on this machine):
+Not verified:
 
-* Gradle build of the APK/AAB — the scaffold is Capacitor-8/AGP 8.13/Gradle
-  8.14.3/Java-21 consistent with the generated project, but it has never been
-  compiled.
+* The signed release APK/AAB — the signing secrets (`KEYSTORE_BASE64`, …) are not
+  configured yet; only the debug APK is produced.
 * Real hardware/emulator run: launch from the TV rail, banner rendering, D-pad
   and channel rocker behaviour, Leanback focus, `MediaPlaybackService`
   notification, playback of a configured playlist.
