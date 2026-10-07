@@ -19,12 +19,23 @@ push/PR, on tags (`v*`) and on demand (`workflow_dispatch`).
 
 Nothing is published anywhere automatically — downloads are workflow artifacts.
 
-## Frontend version
+## Frontend version and access
 
 The web app lives in the other project, so CI builds whatever
 `FRONTEND_REPO@FRONTEND_REF` points at (default `main`). Run the workflow
 manually with the `frontend_ref` input to build a branch, tag or commit hash of
 the frontend without touching this repo.
+
+`coolwormgit/ott-x` is **private**, so the workflow needs read access to it:
+
+* create a **fine-grained PAT** — *Repository access:* only `coolwormgit/ott-x`,
+  *Permissions:* `Contents: Read` (nothing else);
+* add it as the repository secret **`FRONTEND_TOKEN`**
+  (*Settings → Secrets and variables → Actions → New repository secret*).
+
+Without it the job stops immediately with that instruction instead of failing
+with a bare "Repository not found". The token only ever appears in the
+checkout step; it is never written to a file or to the build output.
 
 > A frontend change only reaches the TV app after it is pushed to
 > `coolwormgit/ott-x`. A fix that exists only in a local working tree is not

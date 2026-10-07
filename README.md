@@ -78,9 +78,14 @@ Artifacts of a successful run:
 * `ott-x-tv-debug-apk` — sideloadable debug APK (always);
 * `ott-x-tv-release` — signed APK + AAB (when the keystore secrets are set).
 
-Required repository secrets for signed builds — `KEYSTORE_BASE64`,
-`KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`; `FRONTEND_TOKEN` (a PAT with
-read access to the frontend repo) is only needed when that repo is private.
+Required repository secrets:
+
+* **`FRONTEND_TOKEN`** — read access to the frontend repo. `coolwormgit/ott-x`
+  is private, so CI cannot check it out without this (the job stops with that
+  instruction if it is missing);
+* `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` — only for
+  signed release artifacts; without them the debug APK is still built.
+
 Details, including the Play TV listing steps, are in [docs/ci.md](docs/ci.md).
 
 Run it manually with a different frontend ref: *Actions → Android TV build →

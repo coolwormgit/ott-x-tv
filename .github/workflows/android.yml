@@ -39,14 +39,24 @@ jobs:
       - name: Checkout this project
         uses: actions/checkout@v4
 
+      - name: Check frontend access token
+        env:
+          FRONTEND_TOKEN: ${{ secrets.FRONTEND_TOKEN }}
+        run: |
+          if [ -z "$FRONTEND_TOKEN" ]; then
+            echo "::error::FRONTEND_TOKEN is not set, and $FRONTEND_REPO is private, so the frontend cannot be checked out."
+            echo "Create a fine-grained PAT with 'Contents: Read' on $FRONTEND_REPO and add it as the repository secret FRONTEND_TOKEN (docs/ci.md)."
+            exit 1
+          fi
+
       - name: Checkout the shared OTT-X frontend (${{ env.FRONTEND_REPO }}@${{ env.FRONTEND_REF }})
         uses: actions/checkout@v4
         with:
           repository: ${{ env.FRONTEND_REPO }}
           ref: ${{ env.FRONTEND_REF }}
           path: _shared/OTT-X
-          # FRONTEND_TOKEN is only needed when the frontend repo is private
-          # (a fine-grained PAT with read access to it).
+          # Read access to the (private) frontend repo.
+          token: ${{ secrets.FRONTEND_TOKEN }}
 
       - name: Set up Node
         uses: actions/setup-node@v4
