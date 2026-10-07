@@ -289,7 +289,10 @@ ok(
     "declares the Kotlin Gradle plugin on the buildscript classpath",
     /kotlin-gradle-plugin:\$kotlinVersion/.test(rootGradle)
 );
-ok("variables.gradle defines kotlinVersion", /kotlinVersion\s*=\s*'\d/.test(read(join(ANDROID, "variables.gradle"))));
+ok(
+    "root build.gradle defines kotlinVersion (before variables.gradle is applied)",
+    /ext\.kotlinVersion\s*=\s*'\d/.test(rootGradle)
+);
 ok(
     "Kotlin and Java share a JVM target",
     /jvmToolchain\(\s*21\s*\)/.test(appGradle) && /JavaVersion\.VERSION_21/.test(read(join(APP, "capacitor.build.gradle")))

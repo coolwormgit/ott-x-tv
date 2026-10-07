@@ -13,8 +13,7 @@ ext {
     androidxJunitVersion = '1.3.0'
     androidxEspressoCoreVersion = '3.7.0'
     cordovaAndroidVersion = '14.0.1'
-    // The app's own native plugins (ExoPlayer, media service, command queue,
-    // Stalker, XMLTV) are Kotlin, so the module needs the Kotlin plugin. The
-    // Capacitor 8 template is Java-only and does not add it.
-    kotlinVersion = '2.2.0'
+    // The Kotlin version lives in build.gradle's buildscript block (it has to be
+    // defined before this file is applied). The app's native plugins are Kotlin
+    // and the Capacitor 8 template does not add Kotlin support on its own.
 }
