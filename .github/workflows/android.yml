@@ -86,13 +86,25 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install SDK packages
+      # The runner image already ships the Android SDK, and installing the
+      # legacy `tools` package (what android-actions/setup-android@v3 does) now
+      # fails because Google removed it from the repository. Use the preinstalled
+      # SDK and add only the packages this build needs.
+      - name: Set up Android SDK and packages
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          if [ ! -d "$SDK" ]; then
+            echo "::error::no Android SDK at $SDK — set ANDROID_HOME or install one"
+            exit 1
+          fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          SDKMGR="$(command -v sdkmanager || ls "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1)"
+          echo "sdkmanager: $SDKMGR (SDK $SDK)"
+          yes | "$SDKMGR" --licenses > /dev/null || true
+          "$SDKMGR" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
+          ls "$SDK/platforms" "$SDK/build-tools"
 
       - name: Copy the payload into the Android project
         run: npx cap sync android
