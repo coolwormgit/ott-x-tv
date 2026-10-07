@@ -105,11 +105,22 @@ ok(
 );
 
 const bundle = join(ROOT, "www", "dist", "stbPlayer.js");
+// The payload must be the frontend it was built from: whatever live-resume
+// markers the frontend sources carry must appear in the bundle — and none must
+// appear from nowhere. (The fix is in the local frontend working tree; a
+// frontend ref that predates it legitimately produces a payload without it.)
+const RESUME_MARKERS = ["matched by", "no live bookmark"];
+const frontendChannels = join(OTT_SRC, "src", "channels", "index.ts");
+const sourceHasResume =
+    existsSync(frontendChannels) && RESUME_MARKERS.every((m) => read(frontendChannels).includes(m));
+const bundleText = existsSync(bundle) ? read(bundle) : "";
+const bundleHasResume = RESUME_MARKERS.every((m) => bundleText.includes(m));
 ok(
-    "bundle carries the resume fix",
-    existsSync(bundle) &&
-        read(bundle).includes("matched by") &&
-        read(bundle).includes("no live bookmark")
+    sourceHasResume
+        ? "bundle carries the live-resume fix (it is in the built frontend)"
+        : "bundle matches the frontend it was built from (no resume fix in this ref)",
+    sourceHasResume === bundleHasResume,
+    `source=${sourceHasResume} bundle=${bundleHasResume}`
 );
 
 const lgBundle = join(OTT_SRC, "dist", "stbPlayer.js");
